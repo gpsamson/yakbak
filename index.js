@@ -32,8 +32,14 @@ module.exports = function (host, opts) {
     return buffer(req).then(function (body) {
       var file = path.join(opts.dirname, tapename(req, body));
 
+      // We have to check for both extension for backwards-compatibility.
+      var tapeFile = path.join(opts.dirname, tapename(req, body, '.tape'));
+      var jsFile = path.join(opts.dirname, tapename(req, body, '.tape'));
+
       return Promise.try(function () {
-        return require.resolve(file);
+        return require.resolve(tapeFile);
+      }).catch(ModuleNotFoundError, function (/* err */) {
+        return require.resolve(jsFile);
       }).catch(ModuleNotFoundError, function (/* err */) {
 
         if (opts.noRecord) {
